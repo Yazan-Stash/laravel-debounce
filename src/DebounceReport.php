@@ -23,6 +23,9 @@ class DebounceReport
         $this->is_transactionable = filter_var(data_get($report, 'debounce.send_transactional'), FILTER_VALIDATE_BOOLEAN);
 
         $this->corrected_address = data_get($report, 'debounce.did_you_mean');
+        $this->code = data_get($report, 'debounce.code');
+        $this->result = data_get($report, 'debounce.result');
+        $this->reason = data_get($report, 'debounce.reason');
     }
 
     public function email()
@@ -40,14 +43,42 @@ class DebounceReport
         return $this->is_free_email;
     }
 
+    public function correctedAddress()
+    {
+        return ! empty($this->corrected_address)
+            ? $this->corrected_address : null;
+    }
+
+    public function code()
+    {
+        return $this->code;
+    }
+
+    public function result()
+    {
+        return $this->result;
+    }
+
+    public function reason()
+    {
+        return $this->reason;
+    }
+
     public function isTransactionable()
     {
         return $this->is_transactionable;
     }
 
-    public function correctedAddress()
+    public function isMarketable()
     {
-        return ! empty($this->corrected_address)
-            ? $this->corrected_address : null;
+        if (config('debounce.marketing.send_to_accept_all') && $this->code == 4) {
+            return true;
+        }
+
+        if (config('debounce.marketing.send_to_unknown') && $this->code == 8) {
+            return true;
+        }
+
+        return $this->code == 5;
     }
 }
